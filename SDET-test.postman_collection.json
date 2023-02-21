@@ -1,0 +1,289 @@
+{
+	"info": {
+		"_postman_id": "cc96077d-f908-49b7-9d7f-4848f90b9feb",
+		"name": "SDET-test",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "25903897"
+	},
+	"item": [
+		{
+			"name": "getMarsRoverPhotos",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Retrieve the first 10 Mars photos made by \"Curiosity\"', ()=>{",
+							"  let amountOfPhotos = pm.collectionVariables.get(\"marsPhotoAmount\");",
+							"  let photos = [];",
+							"  for(let i = 0; i < amountOfPhotos;i++){",
+							"     photos.push(pm.response.json().photos[i].img_src);",
+							"    }",
+							"    pm.response.to.have.status(200);",
+							"    pm.expect(pm.collectionVariables.get(\"marsPhotoAmount\")).to.equal('10')",
+							"    pm.expect(photos.length).equals(10)",
+							"});",
+							"pm.collectionVariables.set(\"allMarsPhotos\",pm.response.json().photos.map(photo => photo.img_src));",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/rovers/curiosity/photos?sol={{martianSol}}&api_key={{apiKey}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"rovers",
+						"curiosity",
+						"photos"
+					],
+					"query": [
+						{
+							"key": "sol",
+							"value": "{{martianSol}}"
+						},
+						{
+							"key": "api_key",
+							"value": "{{apiKey}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getMarsPhotosByEarthDate",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const earthDatePhotos = [];",
+							"pm.test('Retrieve the first 10 Mars photos made by \"Curiosity\" on Earth date equal to 1000 Martian sol', ()=>{",
+							"  let amountOfPhotos = pm.collectionVariables.get(\"marsPhotoAmount\");",
+							"  for(let i = 0; i < amountOfPhotos;i++){",
+							"     earthDatePhotos.push(pm.response.json().photos[i].img_src);",
+							"    }",
+							"    pm.response.to.have.status(200);",
+							"    pm.expect(pm.collectionVariables.get(\"marsPhotoAmount\")).to.equal('10');",
+							"    pm.expect(earthDatePhotos.length).equals(10);",
+							"});",
+							"",
+							"pm.test('Retrieve and compare the first 10 Mars photos made by \"Curiosity\" on 1000 sol and on Earth date equal to 1000 Martian sol', ()=>{",
+							"    const equalPhotos = [];",
+							"    const thousandSunMarsPhotos = pm.collectionVariables.get(\"allMarsPhotos\");",
+							"    for(let i = 0 ; i < earthDatePhotos.length; i++){",
+							"        for(let j = 0; j < thousandSunMarsPhotos.length; j++){",
+							"            if (earthDatePhotos[i] === thousandSunMarsPhotos[j]){",
+							"                equalPhotos.push(earthDatePhotos[i]);",
+							"                break;",
+							"            }",
+							"        }",
+							"    }",
+							"    pm.expect(equalPhotos.length).greaterThan(0);",
+							"});",
+							"",
+							"pm.collectionVariables.unset(\"allMarsPhotos\");"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"//pm.collectionVariables.unset(\"allMarsPhotos\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/rovers/curiosity/photos?sol={{martianSol}}&earth-date={{earthDate}}&api_key={{apiKey}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"rovers",
+						"curiosity",
+						"photos"
+					],
+					"query": [
+						{
+							"key": "sol",
+							"value": "{{martianSol}}"
+						},
+						{
+							"key": "earth-date",
+							"value": "{{earthDate}}"
+						},
+						{
+							"key": "api_key",
+							"value": "{{apiKey}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getMarsRoverPhotosByCamera",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const cameras = pm.collectionVariables.get(\"cameras\");",
+							"let photos = pm.collectionVariables.get(\"photos\");",
+							"if(photos.length === 0) photos = [];",
+							"if (cameras && cameras.length > 0){",
+							"    postman.setNextRequest(\"getMarsRoverPhotosByCamera\");",
+							"} else {",
+							"    pm.collectionVariables.unset();",
+							"    postman.setNextRequest(null);",
+							"}",
+							"pm.response.json().photos.forEach(photo => photos.push(photo.img_src));",
+							"pm.collectionVariables.set(\"photos\",photos);",
+							"pm.test(\"Status code is 200\", function () {",
+							"   console.log(photos);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"let cameras = pm.collectionVariables.get(\"cameras\");",
+							"",
+							"if(!cameras || cameras.length == 0) {",
+							"    cameras = [\"FHAZ\",\"RHAZ\",\"MAST\",\"CHEMCAM\",\"MAHLI\",\"MARDI\",\"NAVCAM\"];",
+							"}",
+							"",
+							"let currentCamera = cameras.shift();",
+							"console.log(currentCamera)",
+							"pm.collectionVariables.set(\"camera\", currentCamera);",
+							"pm.collectionVariables.set(\"cameras\", cameras);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/rovers/curiosity/photos?sol={{martianSol}}&camera={{camera}}&api_key={{apiKey}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"rovers",
+						"curiosity",
+						"photos"
+					],
+					"query": [
+						{
+							"key": "sol",
+							"value": "{{martianSol}}"
+						},
+						{
+							"key": "camera",
+							"value": "{{camera}}"
+						},
+						{
+							"key": "api_key",
+							"value": "{{apiKey}}"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "apiKey",
+			"value": "ENTER YOUR OWN API HERE",
+			"type": "default"
+		},
+		{
+			"key": "baseUrl",
+			"value": "https://api.nasa.gov/mars-photos/api/v1",
+			"type": "default"
+		},
+		{
+			"key": "martianSol",
+			"value": "1000",
+			"type": "default"
+		},
+		{
+			"key": "marsPhotoAmount",
+			"value": "10",
+			"type": "default"
+		},
+		{
+			"key": "earthDate",
+			"value": "2015-05-30",
+			"type": "default"
+		},
+		{
+			"key": "camera",
+			"value": ""
+		},
+		{
+			"key": "cameras",
+			"value": ""
+		},
+		{
+			"key": "photos",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "rover",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
